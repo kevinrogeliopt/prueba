@@ -2,14 +2,25 @@ from elasticsearch import Elasticsearch
 import pandas as pd
 import matplotlib.pyplot as plt
 import os
+from dotenv import load_dotenv
 
 def generate_top_songs_chart():
-    # Conexión a Elasticsearch
+    # Cargar variables de entorno
+    load_dotenv()
+    
+    # Conexión a Elasticsearch Cloud
     es = Elasticsearch(
-        "http://localhost:9200",
-        basic_auth=("elastic", "jS+4*01qAOxxXLqB10kp"),
-        verify_certs=False
+        cloud_id=os.getenv('ELASTIC_CLOUD_ID'),
+        basic_auth=(
+            os.getenv('ELASTIC_USERNAME'),
+            os.getenv('ELASTIC_PASSWORD')
+        )
     )
+    
+    # Verificar conexión
+    if not es.ping():
+        print("Error al conectar con Elasticsearch Cloud")
+        return
     
     # Consulta para top 10 canciones por views
     query = {
@@ -105,7 +116,7 @@ def generate_top_songs_chart():
     with open('docs/index.html', 'w', encoding='utf-8') as f:
         f.write(html_content)
     
-    print("Chart and HTML generated successfully!")
+    print("Chart and HTML generated successfully from Elasticsearch Cloud!")
 
 if __name__ == "__main__":
     generate_top_songs_chart()

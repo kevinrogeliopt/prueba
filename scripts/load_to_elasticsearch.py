@@ -2,14 +2,27 @@ import pandas as pd
 from elasticsearch import Elasticsearch
 import json
 import os
+from dotenv import load_dotenv
 
 def load_to_elasticsearch():
-    # Configurar conexión
+    # Cargar variables de entorno
+    load_dotenv()
+    
+    # Configurar conexión a Elasticsearch Cloud
     es = Elasticsearch(
-        "http://localhost:9200",
-        basic_auth=("elastic", "jS+4*01qAOxxXLqB10kp"),
-        verify_certs=False
+        cloud_id=os.getenv('ELASTIC_CLOUD_ID'),
+        basic_auth=(
+            os.getenv('ELASTIC_USERNAME'),
+            os.getenv('ELASTIC_PASSWORD')
+        )
     )
+    
+    # Verificar conexión
+    if es.ping():
+        print("Conexión exitosa a Elasticsearch Cloud")
+    else:
+        print("Error al conectar con Elasticsearch Cloud")
+        return
     
     # Leer el CSV
     df = pd.read_csv('data/youtube-top-100-songs-2025.csv')
@@ -33,7 +46,7 @@ def load_to_elasticsearch():
         
         es.index(index='youtube_songs', id=index, document=doc)
     
-    print(f"Loaded {len(df)} documents to Elasticsearch")
+    print(f"Loaded {len(df)} documents to Elasticsearch Cloud")
 
 if __name__ == "__main__":
     load_to_elasticsearch()
